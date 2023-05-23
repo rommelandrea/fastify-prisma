@@ -1,0 +1,42 @@
+version: '3.9'
+services:
+  # PostGreSQL Service
+  postgresdb:
+    image: postgres
+    container_name: postgresdb
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=fastify
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+  # PgBouncer Service
+  pgbouncer:
+    image: bitnami/pgbouncer:latest
+    platform: linux/amd64
+    container_name: pgbouncer
+    depends_on:
+      - postgresdb
+    ports:
+      - "6432:6432"
+    environment:
+      - PGBOUNCER_AUTH_TYPE=trust
+      # Backend PostgreSQL hostname.
+      - POSTGRESQL_HOST=postgresdb
+      # Backend PostgreSQL port.
+      - POSTGRESQL_PORT=5432
+      # Backend PostgreSQL username.
+      - POSTGRESQL_USERNAME=postgres
+      # Backend PostgreSQL password.
+      - POSTGRESQL_PASSWORD=password
+      # Backend PostgreSQL Database name to connect to.
+      - POSTGRESQL_DATABASE=fastify
+      # Set pgbouncer to transaction mode: https://www.prisma.io/docs/guides/performance-and-optimization/connection-management/configure-pg-bouncer#set-pgbouncer-to-transaction-mode
+      - PGBOUNCER_POOL_MODE=transaction
+      - PGBOUNCER_DATABASE=fastify
+volumes:
+  dbdata:
